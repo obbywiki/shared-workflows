@@ -2,6 +2,12 @@ name: zizmor
 
 on:
   workflow_call:
+    inputs:
+      always-use-default-config:
+        description: Ignore a caller-provided config and use the shared default
+        required: false
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -21,6 +27,7 @@ jobs:
           persist-credentials: false
 
       - name: Check out shared configuration
+        if: ${{ inputs.always-use-default-config || hashFiles('zizmor.yml', '.github/zizmor.yml') == '' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: obbywiki/shared-workflows
@@ -31,9 +38,27 @@ jobs:
             .github/zizmor.yml
           sparse-checkout-cone-mode: false
 
+      - name: Select zizmor configuration
+        id: config
+        shell: bash
+        env:
+          FORCE_DEFAULT: ${{ inputs.always-use-default-config }}
+        run: |
+          if [[ "${FORCE_DEFAULT}" != "true" && -f zizmor.yml ]]; then
+            echo "path=zizmor.yml" >> "${GITHUB_OUTPUT}"
+            echo "Using caller configuration: zizmor.yml"
+          elif [[ "${FORCE_DEFAULT}" != "true" && -f .github/zizmor.yml ]]; then
+            echo "path=.github/zizmor.yml" >> "${GITHUB_OUTPUT}"
+            echo "Using caller configuration: .github/zizmor.yml"
+          else
+            echo "path=.shared-workflows/.github/zizmor.yml" >> "${GITHUB_OUTPUT}"
+            echo "Using shared default configuration"
+          fi
+
       - name: Run zizmor
         uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482
         with:
           inputs: .github/workflows
-          config: .shared-workflows/.github/zizmor.yml
+          config: ${{ steps.config.outputs.path }}
           advanced-security: ${{ !github.event.repository.private }}
+          annotations: ${{ github.event.repository.private }}
