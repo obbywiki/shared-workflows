@@ -3,3 +3,4 @@ rules:
     config:
       policies:
         actions/*: any # trust GitHub
+        obbywiki/*: ref-pin # our own (v* tags are protected by a ruleset)
