@@ -16,14 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write # release commits, tags and the major tag
-      issues: write # release-please labels
-      pull-requests: write # release PR
+      contents: write # the major tag
     steps:
       - id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.MASTER_RELEASE_TOKEN }}
 
       - name: Point major tag at the release
         if: steps.release.outputs.release_created == 'true'
