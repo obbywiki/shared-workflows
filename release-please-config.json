@@ -5,8 +5,7 @@
 	"packages": {
 		".": {
 			"release-type": "simple",
-			"package-name": "shared-workflows",
-			"release-as": "1.0.0"
+			"package-name": "shared-workflows"
 		}
 	}
 }
